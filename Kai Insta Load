@@ -1,0 +1,185 @@
+local function try(fn, ...) local ok = pcall(fn, ...) return ok end
+
+try(function() if setfpscap then setfpscap(9999) end end)
+
+local hookfn = hookfunction or replaceclosure or (syn and syn.hookfunction)
+local newcclosure = newcclosure or function(f) return f end
+
+local ContentProvider = game:GetService("ContentProvider")
+try(function()
+    if hookfn then
+        local realPreload = ContentProvider.PreloadAsync
+        hookfn(realPreload, newcclosure(function(self, list, cb)
+            if type(cb) == "function" and type(list) == "table" then
+                for i = 1, #list do try(cb, list[i], Enum.AssetFetchStatus.Success) end
+            end
+            return
+        end))
+    end
+end)
+
+local ReplicatedFirst = game:GetService("ReplicatedFirst")
+try(function() ReplicatedFirst:RemoveDefaultLoadingScreen() end)
+try(function() ReplicatedFirst:SetDefaultLoadingGuiRemoved() end)
+
+local sethidden = sethiddenproperty or set_hidden_property
+local gethidden = gethiddenproperty or get_hidden_property
+local function hidden(inst, prop, val)
+    if sethidden then try(function() sethidden(inst, prop, val) end) end
+end
+
+local RenderSettings = settings and settings().Rendering or nil
+try(function()
+    if RenderSettings then
+        RenderSettings.QualityLevel = Enum.QualityLevel.Level01
+        RenderSettings.MeshPartDetailLevel = Enum.MeshPartDetailLevel.Level04
+        RenderSettings.EagerBulkExecution = true
+        RenderSettings.EnableFRM = false
+        hidden(RenderSettings, "GraphicsMode", 1)
+    end
+end)
+
+local UserSettings = UserSettings and UserSettings() or nil
+try(function()
+    local gs = UserSettings and UserSettings:GetService("UserGameSettings")
+    if gs then
+        gs.SavedQualityLevel = Enum.SavedQualitySetting.QualityLevel1
+        hidden(gs, "GraphicsQualityLevel", 1)
+    end
+end)
+
+try(function()
+    local NS = game:GetService("NetworkSettings")
+    if NS then
+        hidden(NS, "IncomingReplicationLag", 0)
+        NS.ExtraMemoryUsed = 0
+    end
+end)
+
+try(function()
+    local Lighting = game:GetService("Lighting")
+    Lighting.GlobalShadows = false
+    Lighting.FogEnd = 1e9
+    Lighting.Brightness = 1
+    Lighting.EnvironmentDiffuseScale = 0
+    Lighting.EnvironmentSpecularScale = 0
+    for _, e in ipairs(Lighting:GetDescendants()) do
+        if e:IsA("PostEffect") or e:IsA("Atmosphere") or e:IsA("BloomEffect")
+            or e:IsA("BlurEffect") or e:IsA("SunRaysEffect")
+            or e:IsA("DepthOfFieldEffect") or e:IsA("ColorCorrectionEffect")
+            or e:IsA("Sky") or e:IsA("Clouds") then
+            try(function() e.Enabled = false end)
+        end
+    end
+end)
+
+try(function()
+    local Terrain = workspace:FindFirstChildOfClass("Terrain")
+    if Terrain then
+        Terrain.WaterWaveSize = 0
+        Terrain.WaterWaveSpeed = 0
+        Terrain.WaterReflectance = 0
+        Terrain.WaterTransparency = 1
+        hidden(Terrain, "Decoration", false)
+    end
+    hidden(workspace, "StreamingPauseMode", 0)
+    workspace.StreamingEnabled = workspace.StreamingEnabled
+end)
+
+try(function()
+    local Physics = settings and settings().Physics or nil
+    if Physics then
+        hidden(Physics, "AllowSleep", true)
+        hidden(Physics, "PhysicsEnvironmentalThrottle", Enum.EnviromentalPhysicsThrottle.DefaultAuto)
+    end
+end)
+
+try(function()
+    local mps = game:GetService("MaterialService")
+    if mps then hidden(mps, "Use2022Materials", false) end
+end)
+
+local killers = {}
+local function stripEffects(inst)
+    if inst:IsA("ParticleEmitter") or inst:IsA("Trail") or inst:IsA("Beam")
+        or inst:IsA("Smoke") or inst:IsA("Fire") or inst:IsA("Sparkles") then
+        try(function() inst.Enabled = false end)
+    end
+end
+
+try(function()
+    for _, d in ipairs(workspace:GetDescendants()) do stripEffects(d) end
+    killers[#killers + 1] = workspace.DescendantAdded:Connect(stripEffects)
+end)
+
+local function nukeLoadingGuis()
+    local names = { "loading", "loadingscreen", "loadscreen", "splash",
+        "intro", "cutscene", "playbutton", "startscreen", "mainmenu" }
+    local function looksLikeLoader(gui)
+        local n = tostring(gui.Name):lower()
+        for _, k in ipairs(names) do if n:find(k) then return true end end
+        return false
+    end
+    local function scan(container)
+        if not container then return end
+        for _, g in ipairs(container:GetChildren()) do
+            if (g:IsA("ScreenGui") or g:IsA("GuiMain") or g:IsA("Frame")) and looksLikeLoader(g) then
+                try(function() g.Enabled = false end)
+                try(function() g.Visible = false end)
+            end
+        end
+    end
+    scan(ReplicatedFirst)
+    local lp = game:GetService("Players").LocalPlayer
+    if lp then scan(lp:FindFirstChildOfClass("PlayerGui")) end
+    if typeof(gethui) == "function" then try(function() scan(gethui()) end) end
+    try(function() scan(game:GetService("CoreGui")) end)
+end
+
+try(function()
+    for _, ls in ipairs(ReplicatedFirst:GetChildren()) do
+        if ls:IsA("LocalScript") or ls:IsA("Script") then
+            local n = ls.Name:lower()
+            if n:find("load") or n:find("intro") or n:find("splash") then
+                try(function() ls.Disabled = true end)
+            end
+        end
+    end
+end)
+
+if not game:IsLoaded() then
+    try(function()
+        local t = tick()
+        while not game:IsLoaded() and tick() - t < 30 do
+            game.Loaded:Wait()
+        end
+    end)
+end
+
+try(function()
+    local Players = game:GetService("Players")
+    if not Players.LocalPlayer then
+        Players:GetPropertyChangedSignal("LocalPlayer"):Wait()
+    end
+    local lp = Players.LocalPlayer
+    if lp and not lp:FindFirstChildOfClass("PlayerGui") then
+        lp:WaitForChild("PlayerGui", 15)
+    end
+    if lp and not lp.Character then
+        lp.CharacterAdded:Wait()
+    end
+    local char = lp and lp.Character
+    local hrp = char and char:FindFirstChild("HumanoidRootPart")
+    if hrp and workspace.StreamingEnabled then
+        try(function() lp:RequestStreamAroundAsync(hrp.Position, 5) end)
+    end
+end)
+
+for i = 1, 3 do
+    try(nukeLoadingGuis)
+    task.wait(0.15)
+end
+
+task.delay(6, function()
+    for _, c in ipairs(killers) do try(function() c:Disconnect() end) end
+end)
