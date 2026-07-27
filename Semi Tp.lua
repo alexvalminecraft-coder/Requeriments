@@ -29,7 +29,7 @@ end)
 if success then
     AnimalsData = result
 else
-    warn("Lava Hub: No se pudo cargar AnimalsData.")
+    warn("Arcadragon Hub: No se pudo cargar AnimalsData.")
 end
 
 local allAnimalsCache = {}
@@ -44,14 +44,14 @@ local autoStealEnabled = false
 local stealConnection = nil
 
 local screenGui = Instance.new("ScreenGui")
-screenGui.Name = "Lava Hub"
+screenGui.Name = "Arcadragon Hub"
 screenGui.ResetOnSpawn = false
 screenGui.DisplayOrder = 999
 screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 screenGui.Parent = playerGui
 
 -- ============================================================
--- LAVA COLORS
+-- Arcadragon COLORS
 -- ============================================================
 local ACCENT_KEYS = {
     ColorSequenceKeypoint.new(0,    Color3.fromRGB(255, 60, 0)),
@@ -121,7 +121,7 @@ local titleLabel = Instance.new("TextLabel")
 titleLabel.Size = UDim2.new(1, 0, 0, 30)
 titleLabel.Position = UDim2.new(0, 0, 0, 4)
 titleLabel.BackgroundTransparency = 1
-titleLabel.Text = "🌋 Lava Hub"
+titleLabel.Text = "🌋 Arcadragon Hub"
 titleLabel.TextColor3 = COL_WHITE
 titleLabel.TextSize = 22
 titleLabel.Font = Enum.Font.GothamBold
@@ -230,7 +230,7 @@ local panelTitle = Instance.new("TextLabel")
 panelTitle.Size = UDim2.new(1, -20, 0, 30)
 panelTitle.Position = UDim2.new(0, 10, 0, 4)
 panelTitle.BackgroundTransparency = 1
-panelTitle.Text = "🌋 Lava Hub"
+panelTitle.Text = "🌋 Arcadragon Hub"
 panelTitle.TextColor3 = COL_WHITE
 panelTitle.TextSize = 20
 panelTitle.Font = Enum.Font.GothamBold
@@ -1295,7 +1295,7 @@ local spActions = {
         TeleportService:Teleport(game.PlaceId, player)
     end,
     ["Kick Self"] = function()
-        player:Kick("Lava Hub")
+        player:Kick("Arcadragon Hub")
     end,
     ["Force Reset"] = function()
         local char = player.Character
@@ -1748,7 +1748,7 @@ do
 makeSection(visualContent, "👁️ Player ESP")
 
 local espGui = Instance.new("ScreenGui")
-espGui.Name = "LavaESPGui"
+espGui.Name = "ArcadragonESPGui"
 espGui.ResetOnSpawn = false
 espGui.ZIndexBehavior = Enum.ZIndexBehavior.Global
 espGui.IgnoreGuiInset = true
@@ -1989,7 +1989,7 @@ end
 
 local _SKIES = {
     { name = "Original", ft = nil },
-    { name = "Lava Galaxy",
+    { name = "Arcadragon Galaxy",
       ft="rbxassetid://151165228", bk="rbxassetid://151165228",
       lf="rbxassetid://151165228", rt="rbxassetid://151165228",
       tp="rbxassetid://151165228", dn="rbxassetid://151165228" },
@@ -2045,7 +2045,7 @@ _applySky(_SKIES[1])
 end
 
 -- ============================================================
--- COLOR DE PAREDES (LAVA THEME)
+-- COLOR DE PAREDES (Arcadragon THEME)
 -- ============================================================
 do
 makeSection(visualContent, "🎨 Color de Paredes")
